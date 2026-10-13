@@ -1,0 +1,25 @@
+name: Build Codinex VSIX
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-vsix.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build extension
+        shell: pwsh
+        run: |
+          msbuild src/Codinex.VSIX/Codinex.VSIX.csproj /restore /m /p:Configuration=Release /p:Platform=AnyCPU /p:DeployExtension=false
+          if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codinex-VSIX
+          path: src/Codinex.VSIX/bin/Release/*.vsix
+          if-no-files-found: error
